@@ -57,4 +57,23 @@ Please refer to the corresponding file(s) for details.
         * change pixel index (see [this](https://github.com/andrewliao11/py-faster-rcnn-imagenet/blob/master/README.md))
 
 ## Modify Prototxt
+Here I will use the orginal implementation of [Faster RCNN](https://github.com/rbgirshick/py-faster-rcnn) to illustrate the changes.
+
+* ```solver.prototxt```
+    * Change [this](https://github.com/rbgirshick/py-faster-rcnn) to the correct ```train.prototxt``` directory
+* ```train.prototxt```
+    * Change [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L11), [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L530) and [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L620) to the correct number of classes (200 + 1 = 201 in my case)
+    * Change [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L643) to correct number of bboxes ((200 + 1) * 4 = 804 in my case)
+* ```test.prototxt```
+    * Similarly, change [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt#L567) to 201 and [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt#L592) to 804
+
+## Train/test the model
+To run the end-to-end training:
+
+```
+cd $FRCN_ROOT
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG16 ilsvrc
+```
+
+## Results
 To be continued...

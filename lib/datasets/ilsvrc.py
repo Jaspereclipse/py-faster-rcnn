@@ -34,6 +34,8 @@ class ilsvrc(imdb):
         self._data_path = os.path.join(self._devkit_path,
                                        'ILSVRC'+ self._year + '_DET_val')
         self._classes = ('__background__',)
+        
+        # Read the classes from .mat file and index them
         self._wnid = (0,) # id of the category
         self._synsets = sio.loadmat(os.path.join(self._devkit_path,
                                                  'data', 'meta_det.mat'))
@@ -44,6 +46,7 @@ class ilsvrc(imdb):
         self._wnid_to_ind = dict(zip(self._wnid, xrange(self.num_classes)))
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
         
+        # Change the suffix
         self._image_ext = '.JPEG'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
@@ -51,7 +54,7 @@ class ilsvrc(imdb):
         self._salt = str(uuid.uuid4())
         self._comp_id = 'comp4'
 
-        # PASCAL specific config options, changed in ILSVRC
+        # PASCAL specific config options, changed in ILSVRC (no use_diff in ILSVRC)
         self.config = {'cleanup'     : True,
                        'use_salt'    : True,
 #                       'use_diff'    : False,
@@ -174,6 +177,7 @@ class ilsvrc(imdb):
         seg_areas = np.zeros((num_objs), dtype=np.float32)
 
         # Load object bounding boxes into a data frame.
+        # change starting point
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based

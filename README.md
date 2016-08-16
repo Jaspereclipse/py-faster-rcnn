@@ -55,3 +55,6 @@ Please refer to the corresponding file(s) for details.
         * point it to the annotations folder
         * comment out the 'use_diff' part
         * change pixel index (see [this](https://github.com/andrewliao11/py-faster-rcnn-imagenet/blob/master/README.md))
+
+## Modify Prototxt
+To be continued...

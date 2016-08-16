@@ -9,9 +9,16 @@
 
 __sets = {}
 
+from datasets.ilsvrc import ilsvrc
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
 import numpy as np
+
+# Set up ilsvrc
+for year in ['2013']:
+    for split in ['val_train', 'val_test']:
+        name = 'ilsvrc_{}_{}'.format(year, split)
+        __sets[name] = (lambda split=split, year=year: ilsvrc(split, year))
 
 # Set up voc_<year>_<split> using selective search "fast" mode
 for year in ['2007', '2012']:

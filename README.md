@@ -87,7 +87,8 @@ The fix refers to the solution to [Issue#35](http://stackoverflow.com/questions/
     * [Modification #3](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L26-L27)
     * [Modification #4](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L44-L51)
     * [Modification #5](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L155-L161)
-*  ```
+*  ```$FRCN_ROOT/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt```
+    * [Modification #6](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt#L13) 
 
 ## Results
 To be continued...

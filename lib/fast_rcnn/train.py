@@ -24,7 +24,7 @@ class SolverWrapper(object):
     """
 
     def __init__(self, solver_prototxt, roidb, output_dir,
-                 pretrained_model=None):
+                 pretrained_model=None, previous_state=None):
         """Initialize the SolverWrapper."""
         self.output_dir = output_dir
 
@@ -41,10 +41,14 @@ class SolverWrapper(object):
             print 'done'
 
         self.solver = caffe.SGDSolver(solver_prototxt)
+	assert (pretrained_model is None) != (previous_state is None) # Only one exist
         if pretrained_model is not None:
             print ('Loading pretrained model '
                    'weights from {:s}').format(pretrained_model)
             self.solver.net.copy_from(pretrained_model)
+	elif previous_state is not None:
+	    print ('Restore state from: {:s}'.format(previous_state))
+	    self.solver.restore(previous_state)
 
         self.solver_param = caffe_pb2.SolverParameter()
         with open(solver_prototxt, 'rt') as f:
@@ -149,12 +153,12 @@ def filter_roidb(roidb):
     return filtered_roidb
 
 def train_net(solver_prototxt, roidb, output_dir,
-              pretrained_model=None, max_iters=40000):
+              pretrained_model=None, previous_state=None, max_iters=40000):
     """Train a Fast R-CNN network."""
 
     roidb = filter_roidb(roidb)
     sw = SolverWrapper(solver_prototxt, roidb, output_dir,
-                       pretrained_model=pretrained_model)
+                       pretrained_model=pretrained_model, previous_state=previous_state)
 
     print 'Solving...'
     model_paths = sw.train_model(max_iters)

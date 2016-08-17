@@ -76,7 +76,7 @@ cd $FRCN_ROOT
 ```
 
 ## Use Caffe's snapshot
-After running ~28,000 iterations on AWS, the instance encountered a sudden mysterious shutdown. And this code's implemented snapshot method in Python has no way to restore the training state, meaning I have to run it again. To prevent similar things from happening again, I decided to use the Caffe's original snapshot.
+After running ~28,000 iterations on AWS, the instance encountered a sudden mysterious shutdown. And the implemented snapshot method in Python has no way to restore the training state, meaning I have to run it again. To prevent similar things from happening again, I decided to use the Caffe's original snapshot.
 
 The fix refers to the solution to [Issue#35](http://stackoverflow.com/questions/8773299/how-to-cut-an-entire-line-in-vim-and-paste-it). 
 
@@ -88,7 +88,9 @@ The fix refers to the solution to [Issue#35](http://stackoverflow.com/questions/
     * [Modification #4](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L44-L51)
     * [Modification #5](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L155-L161)
 *  ```$FRCN_ROOT/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt```
-    * [Modification #6](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt#L13) 
+    * [Modification #6](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt#L13)
+*  ```$FRCN_ROOT/experiments/scripts/faster_rcnn_end2end.sh```
+    * [Modification #7](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/experiments/scripts/faster_rcnn_end2end.sh#L64) (comment the ```--weights``` and uncomment this line if you want to restore previous state)
 
 ## Results
 To be continued...

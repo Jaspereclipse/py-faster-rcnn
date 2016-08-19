@@ -40,7 +40,7 @@ def parse_patterns(ls, patterns, rule=None, data_type=float):
 			assert len_check == len(dict_[pattern])
 	return dict_
 
-def plot_losses(losses, iteration, colors, select=None, use_conv=False):
+def plot_losses(losses, iteration, colors, select=None, use_conv=False, fig_name=None):
 	legend = losses.keys()
 	if select is not None and len(select) > 0:
 		legend =  list(set(select).intersection(legend))
@@ -48,8 +48,8 @@ def plot_losses(losses, iteration, colors, select=None, use_conv=False):
 	num_losses = len(legend)
 	
 	# Set up colors
-	assert len(colors) == num_losses
 	fig = plt.figure()
+	assert len(colors) == num_losses
 	plt.rc('axes', prop_cycle=(cycler('color', colors)))
 	
 	# Customize
@@ -74,6 +74,11 @@ def plot_losses(losses, iteration, colors, select=None, use_conv=False):
 	plt.xlabel('Iterations')
 	plt.ylabel('Loss')
 
+	if fig_name is not None:
+		assert type(fig_name) is str
+		img_dir = "./output/loss_image"
+		assert os.path.exists(img_dir)
+		fig.savefig(os.path.join(img_dir, fig_name + "_{:d}.png".format(max(iteration))))
 
 	# Show it
 	plt.show()
@@ -103,9 +108,9 @@ if __name__ == '__main__':
 	assert len(total_iter) == len(losses[patterns[0]])
 
 	# plot the losses separately and in one graph
-	plot_losses(losses, total_iter, colors=['r'], select=["loss"], use_conv=True)
-	plot_losses(losses, total_iter, colors=['g'], select=["loss_bbox"], use_conv=True)
-	plot_losses(losses, total_iter, colors=['b'], select=["loss_cls"], use_conv=True)
-	plot_losses(losses, total_iter, colors=['y'], select=["rpn_cls_loss"], use_conv=True)
-	plot_losses(losses, total_iter, colors=['k'], select=["rpn_loss_bbox"], use_conv=True)
-	plot_losses(losses, total_iter, colors=['r', 'g', 'b', 'y', 'k'], use_conv=True)
+	plot_losses(losses, total_iter, colors=['r'], select=["loss"], use_conv=True, fig_name="loss")
+	plot_losses(losses, total_iter, colors=['g'], select=["loss_bbox"], use_conv=True, fig_name="loss_bbox")
+	plot_losses(losses, total_iter, colors=['b'], select=["loss_cls"], use_conv=True, fig_name="loss_cls")
+	plot_losses(losses, total_iter, colors=['y'], select=["rpn_cls_loss"], use_conv=True, fig_name="rpn_cls_loss")
+	plot_losses(losses, total_iter, colors=['k'], select=["rpn_loss_bbox"], use_conv=True, fig_name="rpn_loss_bbox")
+	plot_losses(losses, total_iter, colors=['r', 'g', 'b', 'y', 'k'], use_conv=True, fig_name="loss_all_in_one")

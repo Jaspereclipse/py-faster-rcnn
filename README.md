@@ -1,217 +1,96 @@
-### Disclaimer
+# Training Faster RCNN on ILSVRC data
 
-The official Faster R-CNN code (written in MATLAB) is available [here](https://github.com/ShaoqingRen/faster_rcnn).
-If your goal is to reproduce the results in our NIPS 2015 paper, please use the [official code](https://github.com/ShaoqingRen/faster_rcnn).
+1. This is a forked version of [Faster RCNN](https://github.com/rbgirshick/py-faster-rcnn). Please refer to the original [README.md](https://github.com/rbgirshick/py-faster-rcnn/blob/master/README.md) file for more information.
 
-This repository contains a Python *reimplementation* of the MATLAB code.
-This Python implementation is built on a fork of [Fast R-CNN](https://github.com/rbgirshick/fast-rcnn).
-There are slight differences between the two implementations.
-In particular, this Python port
- - is ~10% slower at test-time, because some operations execute on the CPU in Python layers (e.g., 220ms / image vs. 200ms / image for VGG16)
- - gives similar, but not exactly the same, mAP as the MATLAB version
- - is *not compatible* with models trained using the MATLAB code due to the minor implementation differences
- - **includes approximate joint training** that is 1.5x faster than alternating optimization (for VGG16) -- see these [slides](https://www.dropbox.com/s/xtr4yd4i5e0vw8g/iccv15_tutorial_training_rbg.pdf?dl=0) for more information
+2. The implementation of the code was an attempt to reproduce [andrewliao11](https://github.com/andrewliao11/py-faster-rcnn-imagenet)'s work on ImageNet's dataset.
 
-# *Faster* R-CNN: Towards Real-Time Object Detection with Region Proposal Networks
+3. The code was run by AWS's [g2.2xlarge](https://aws.amazon.com/ec2/instance-types/) instance. 
 
-By Shaoqing Ren, Kaiming He, Ross Girshick, Jian Sun (Microsoft Research)
+## Prepare Data
+### Download
+I'm using the ILSVRC 2013 Validation set (~2.7 GB, you can download images data, annotations and devkit [here](http://image-net.org/challenges/LSVRC/2014/download-images-5jj5.php)).
 
-This Python implementation contains contributions from Sean Bell (Cornell) written during an MSR internship.
+My organization of the database has the following structure (I saved it to ~/):
+```
+ILSVRC13 
+└─── LSVRC2013_DET_val
+    │   *.JPEG (e.g. ILSVRC2012_val_00000001.JPEG)
+└─── data
+    │   meta_det.mat
+    └─── det_lists
+             │  *.txt (e.g. val.txt)
+└─── Annotations
+    │   *.xml (e.g. ILSVRC2012_val_00000001.xml)
+```
 
-Please see the official [README.md](https://github.com/ShaoqingRen/faster_rcnn/blob/master/README.md) for more details.
+It is convenient to create a symbolic link for the code to refer to the data (assuming $FRCN_ROOT is directory of the repo for convention, e.g. blablabla/py-faster-rcnn):
 
-Faster R-CNN was initially described in an [arXiv tech report](http://arxiv.org/abs/1506.01497) and was subsequently published in NIPS 2015.
-
-### License
-
-Faster R-CNN is released under the MIT License (refer to the LICENSE file for details).
-
-### Citing Faster R-CNN
-
-If you find Faster R-CNN useful in your research, please consider citing:
-
-    @inproceedings{renNIPS15fasterrcnn,
-        Author = {Shaoqing Ren and Kaiming He and Ross Girshick and Jian Sun},
-        Title = {Faster {R-CNN}: Towards Real-Time Object Detection
-                 with Region Proposal Networks},
-        Booktitle = {Advances in Neural Information Processing Systems ({NIPS})},
-        Year = {2015}
-    }
-
-### Contents
-1. [Requirements: software](#requirements-software)
-2. [Requirements: hardware](#requirements-hardware)
-3. [Basic installation](#installation-sufficient-for-the-demo)
-4. [Demo](#demo)
-5. [Beyond the demo: training and testing](#beyond-the-demo-installation-for-training-and-testing-models)
-6. [Usage](#usage)
-
-### Requirements: software
-
-1. Requirements for `Caffe` and `pycaffe` (see: [Caffe installation instructions](http://caffe.berkeleyvision.org/installation.html))
-
-  **Note:** Caffe *must* be built with support for Python layers!
-
-  ```make
-  # In your Makefile.config, make sure to have this line uncommented
-  WITH_PYTHON_LAYER := 1
-  # Unrelatedly, it's also recommended that you use CUDNN
-  USE_CUDNN := 1
-  ```
-
-  You can download my [Makefile.config](http://www.cs.berkeley.edu/~rbg/fast-rcnn-data/Makefile.config) for reference.
-2. Python packages you might not have: `cython`, `python-opencv`, `easydict`
-3. [Optional] MATLAB is required for **official** PASCAL VOC evaluation only. The code now includes unofficial Python evaluation code.
-
-### Requirements: hardware
-
-1. For training smaller networks (ZF, VGG_CNN_M_1024) a good GPU (e.g., Titan, K20, K40, ...) with at least 3G of memory suffices
-2. For training Fast R-CNN with VGG16, you'll need a K40 (~11G of memory)
-3. For training the end-to-end version of Faster R-CNN with VGG16, 3G of GPU memory is sufficient (using CUDNN)
-
-### Installation (sufficient for the demo)
-
-1. Clone the Faster R-CNN repository
-  ```Shell
-  # Make sure to clone with --recursive
-  git clone --recursive https://github.com/rbgirshick/py-faster-rcnn.git
-  ```
-
-2. We'll call the directory that you cloned Faster R-CNN into `FRCN_ROOT`
-
-   *Ignore notes 1 and 2 if you followed step 1 above.*
-
-   **Note 1:** If you didn't clone Faster R-CNN with the `--recursive` flag, then you'll need to manually clone the `caffe-fast-rcnn` submodule:
-    ```Shell
-    git submodule update --init --recursive
-    ```
-    **Note 2:** The `caffe-fast-rcnn` submodule needs to be on the `faster-rcnn` branch (or equivalent detached state). This will happen automatically *if you followed step 1 instructions*.
-
-3. Build the Cython modules
-    ```Shell
-    cd $FRCN_ROOT/lib
-    make
-    ```
-
-4. Build Caffe and pycaffe
-    ```Shell
-    cd $FRCN_ROOT/caffe-fast-rcnn
-    # Now follow the Caffe installation instructions here:
-    #   http://caffe.berkeleyvision.org/installation.html
-
-    # If you're experienced with Caffe and have all of the requirements installed
-    # and your Makefile.config in place, then simply do:
-    make -j8 && make pycaffe
-    ```
-
-5. Download pre-computed Faster R-CNN detectors
-    ```Shell
-    cd $FRCN_ROOT
-    ./data/scripts/fetch_faster_rcnn_models.sh
-    ```
-
-    This will populate the `$FRCN_ROOT/data` folder with `faster_rcnn_models`. See `data/README.md` for details.
-    These models were trained on VOC 2007 trainval.
-
-### Demo
-
-*After successfully completing [basic installation](#installation-sufficient-for-the-demo)*, you'll be ready to run the demo.
-
-To run the demo
-```Shell
+```
 cd $FRCN_ROOT
-./tools/demo.py
+ln -s ~/ILSVRC13 ./data/ILSVRCdevkit2013
 ```
-The demo performs detection using a VGG16 network trained for detection on PASCAL VOC 2007.
+### Subset
+Next I wrote a small python script ([sklearn](http://scikit-learn.org/stable/) needed) to shuffle split the ```val.txt``` into ```val_train.txt``` and ```val_test.txt``` (test size is 0.25), which reside in the same directory as ```val.txt```.
 
-### Beyond the demo: installation for training and testing models
-1. Download the training, validation, test data and VOCdevkit
-
-	```Shell
-	wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtrainval_06-Nov-2007.tar
-	wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar
-	wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCdevkit_08-Jun-2007.tar
-	```
-
-2. Extract all of these tars into one directory named `VOCdevkit`
-
-	```Shell
-	tar xvf VOCtrainval_06-Nov-2007.tar
-	tar xvf VOCtest_06-Nov-2007.tar
-	tar xvf VOCdevkit_08-Jun-2007.tar
-	```
-
-3. It should have this basic structure
-
-	```Shell
-  	$VOCdevkit/                           # development kit
-  	$VOCdevkit/VOCcode/                   # VOC utility code
-  	$VOCdevkit/VOC2007                    # image sets, annotations, etc.
-  	# ... and several other directories ...
-  	```
-
-4. Create symlinks for the PASCAL VOC dataset
-
-	```Shell
-    cd $FRCN_ROOT/data
-    ln -s $VOCdevkit VOCdevkit2007
-    ```
-    Using symlinks is a good idea because you will likely want to share the same PASCAL dataset installation between multiple projects.
-5. [Optional] follow similar steps to get PASCAL VOC 2010 and 2012
-6. [Optional] If you want to use COCO, please see some notes under `data/README.md`
-7. Follow the next sections to download pre-trained ImageNet models
-
-### Download pre-trained ImageNet models
-
-Pre-trained ImageNet models can be downloaded for the three networks described in the paper: ZF and VGG16.
-
-```Shell
+```
 cd $FRCN_ROOT
-./data/scripts/fetch_imagenet_models.sh
+python ./tools/shuffle_split.py --des ./data/ILSVRC13/data/det_lists/val.txt
 ```
-VGG16 comes from the [Caffe Model Zoo](https://github.com/BVLC/caffe/wiki/Model-Zoo), but is provided here for your convenience.
-ZF was trained at MSRA.
+## Modify Scripts
+Most of the changes are related to data import (creating roidb for RPN). Some have to deal with prototxt files.
+Please refer to the corresponding file(s) for details.
 
-### Usage
+1. Add a new path for ILSVRC in ```faster_rcnn_end2end.sh```
+2. Edit ```./lib/datasets/factory.py``` to pass the correct arguments into ```ilsvrc``` object
+3. Create a new class ```ilsvrc.py``` resembling ```pascal_voc.py```
+    * ```__init__()```
+        * read class from meta_det.mat and index them (see [this](https://github.com/andrewliao11/py-faster-rcnn-imagenet/blob/master/README.md))
+        * change suffix to .JPEG
+        * comment 'use_diff' (no such thing in ImageNet annotations)
+    * ```_get_default_path()```
+        * change to your devkit path (symbolic link)
+    * ```_load_image_set_index()```
+        * change path to your val_train.txt/val_test.txt
+    * ```_load_ilsvrc_annotation()``` (changed from ```_load_pascal_annotation()```)
+        * point it to the annotations folder
+        * comment out the 'use_diff' part
+        * change pixel index (see [this](https://github.com/andrewliao11/py-faster-rcnn-imagenet/blob/master/README.md))
 
-To train and test a Faster R-CNN detector using the **alternating optimization** algorithm from our NIPS 2015 paper, use `experiments/scripts/faster_rcnn_alt_opt.sh`.
-Output is written underneath `$FRCN_ROOT/output`.
+## Modify Prototxt
+Here I will use the orginal implementation of [Faster RCNN](https://github.com/rbgirshick/py-faster-rcnn) to illustrate the changes.
 
-```Shell
+* ```solver.prototxt```
+    * Change [this](https://github.com/rbgirshick/py-faster-rcnn) to the correct ```train.prototxt``` directory
+* ```train.prototxt```
+    * Change [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L11), [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L530) and [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L620) to the correct number of classes (200 + 1 = 201 in my case)
+    * Change [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt#L643) to correct number of bboxes ((200 + 1) * 4 = 804 in my case)
+* ```test.prototxt```
+    * Similarly, change [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt#L567) to 201 and [this](https://github.com/rbgirshick/py-faster-rcnn/blob/master/models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt#L592) to 804
+
+## Train/test the model
+To run the end-to-end training:
+
+```
 cd $FRCN_ROOT
-./experiments/scripts/faster_rcnn_alt_opt.sh [GPU_ID] [NET] [--set ...]
-# GPU_ID is the GPU you want to train on
-# NET in {ZF, VGG_CNN_M_1024, VGG16} is the network arch to use
-# --set ... allows you to specify fast_rcnn.config options, e.g.
-#   --set EXP_DIR seed_rng1701 RNG_SEED 1701
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG16 ilsvrc
 ```
 
-("alt opt" refers to the alternating optimization training algorithm described in the NIPS paper.)
+## Use Caffe's snapshot
+After running ~28,000 iterations on AWS, the instance encountered a sudden mysterious shutdown. And the implemented snapshot method in Python has no way to restore the training state, meaning I have to run it again. To prevent similar things from happening again, I decided to use the Caffe's original snapshot.
 
-To train and test a Faster R-CNN detector using the **approximate joint training** method, use `experiments/scripts/faster_rcnn_end2end.sh`.
-Output is written underneath `$FRCN_ROOT/output`.
+The fix refers to the solution to [Issue#35](http://stackoverflow.com/questions/8773299/how-to-cut-an-entire-line-in-vim-and-paste-it). 
 
-```Shell
-cd $FRCN_ROOT
-./experiments/scripts/faster_rcnn_end2end.sh [GPU_ID] [NET] [--set ...]
-# GPU_ID is the GPU you want to train on
-# NET in {ZF, VGG_CNN_M_1024, VGG16} is the network arch to use
-# --set ... allows you to specify fast_rcnn.config options, e.g.
-#   --set EXP_DIR seed_rng1701 RNG_SEED 1701
-```
+* ```$FRCN_ROOT/tools/train_net.py```
+    * [Modification #1](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/tools/train_net.py#L40-L42)
+    * [Modification #2](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/tools/train_net.py#L113-L116)
+*  ```$FRCN_ROOT/lib/fast_rcnn/train.py```
+    * [Modification #3](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L26-L27)
+    * [Modification #4](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L44-L51)
+    * [Modification #5](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L155-L161)
+*  ```$FRCN_ROOT/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt```
+    * [Modification #6](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt#L13)
+*  ```$FRCN_ROOT/experiments/scripts/faster_rcnn_end2end.sh```
+    * [Modification #7](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/experiments/scripts/faster_rcnn_end2end.sh#L64) (comment the ```--weights``` and uncomment this line if you want to restore previous state)
 
-This method trains the RPN module jointly with the Fast R-CNN network, rather than alternating between training the two. It results in faster (~ 1.5x speedup) training times and similar detection accuracy. See these [slides](https://www.dropbox.com/s/xtr4yd4i5e0vw8g/iccv15_tutorial_training_rbg.pdf?dl=0) for more details.
-
-Artifacts generated by the scripts in `tools` are written in this directory.
-
-Trained Fast R-CNN networks are saved under:
-
-```
-output/<experiment directory>/<dataset name>/
-```
-
-Test outputs are saved under:
-
-```
-output/<experiment directory>/<dataset name>/<network snapshot name>/
-```
+## Results
+To be continued...

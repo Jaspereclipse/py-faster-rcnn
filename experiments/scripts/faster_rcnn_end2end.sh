@@ -63,9 +63,11 @@ echo Logging output to "$LOG"
 #   ${EXTRA_ARGS}
 # # --snapshot vgg16_faster_rcnn_iter_100.solverstate \
 
-set +x
-NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
-set -x
+# set +x
+# NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
+# set -x
+
+NET_FINAL="./vgg16_faster_rcnn_iter_100000.caffemodel"
 
 time ./tools/test_net.py --gpu ${GPU_ID} \
   --def models/${PT_DIR}/${NET}/faster_rcnn_end2end/test.prototxt \

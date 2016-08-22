@@ -139,6 +139,7 @@ if __name__ == '__main__':
 
     im_names = ['demo_01.jpg', 'demo_02.jpg', 'demo_03.jpg', '000456.jpg', 
     '000542.jpg', '001150.jpg', '001763.jpg', '004545.jpg']
+#    im_names = ['demo_00.jpg']
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for data/demo/{}'.format(im_name)

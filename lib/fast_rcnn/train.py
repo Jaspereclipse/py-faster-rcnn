@@ -41,15 +41,14 @@ class SolverWrapper(object):
             print 'done'
 
         self.solver = caffe.SGDSolver(solver_prototxt)
-	assert (pretrained_model is None) != (previous_state is None) # Only one exist
+        assert (pretrained_model is None) != (previous_state is None) # Only one exist
         if pretrained_model is not None:
             print ('Loading pretrained model '
                    'weights from {:s}').format(pretrained_model)
             self.solver.net.copy_from(pretrained_model)
-	elif previous_state is not None:
-	    print ('Restore state from: {:s}'.format(previous_state))
-	    self.solver.restore(previous_state)
-
+        elif previous_state is not None:
+            print ('Restore state from: {:s}'.format(previous_state))
+            self.solver.restore(previous_state)
         self.solver_param = caffe_pb2.SolverParameter()
         with open(solver_prototxt, 'rt') as f:
             pb2.text_format.Merge(f.read(), self.solver_param)

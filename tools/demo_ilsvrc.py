@@ -118,7 +118,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     prototxt = os.path.join(cfg.ROOT_DIR, 'models/ilsvrc/VGG16/faster_rcnn_end2end/test.prototxt')
-    caffemodel = 'vgg16_faster_rcnn_iter_100000.caffemodel'
+    caffemodel = 'vgg16_faster_rcnn_iter_70000.caffemodel'
 
     assert os.path.isfile(caffemodel)
 
@@ -136,9 +136,10 @@ if __name__ == '__main__':
     im = 128 * np.ones((300, 500, 3), dtype=np.uint8)
     for i in xrange(2):
         _, _= im_detect(net, im)
-
-    im_names = ['demo_01.jpg', 'demo_02.jpg', 'demo_03.jpg', '000456.jpg', 
-    '000542.jpg', '001150.jpg', '001763.jpg', '004545.jpg']
+    im_names = ['ILSVRC2012_val_00034342.JPEG', 'ILSVRC2012_val_00016115.JPEG', 
+                'ILSVRC2013_val_00002635.JPEG']
+#    im_names = ['demo_01.jpg', 'demo_02.jpg', 'demo_03.jpg', '000456.jpg', 
+#    '000542.jpg', '001150.jpg', '001763.jpg', '004545.jpg']
 #    im_names = ['demo_00.jpg']
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'

@@ -4,7 +4,28 @@
 
 2. The implementation of the code was an attempt to reproduce [andrewliao11](https://github.com/andrewliao11/py-faster-rcnn-imagenet)'s work on ImageNet's dataset.
 
-3. The code was run by AWS's [g2.2xlarge](https://aws.amazon.com/ec2/instance-types/) instance. 
+3. The code ran on a AWS's [g2.2xlarge](https://aws.amazon.com/ec2/instance-types/) instance (~2.8s/iter) and later configured to run locally on a desktop with GTX 1070 (CUDA 8.0, cuDNNv5, ~0.45s/iter)
+
+## Configuration for GTX 1070 on Ubuntu 16.04
+It took some time to get it working on my desktop (GTX 1070, CUDA 8.0, cuDNNv5, gcc 5.4). Some key steps:
+
+* Install newest NVIDIA driver: I find this [post](http://www.allaboutlinux.eu/remove-nouveau-and-install-nvidia-driver-in-ubuntu-15-04/) to be rather useful. 
+* Install CUDA 8.0: run with ```--override``` to suppress compiler error (gcc); [official documentation](http://docs.nvidia.com/cuda/cuda-getting-started-guide-for-linux/#axzz4ITZNE9gb)
+
+```
+./cuda_8.0.27_linux.run --override
+```
+* Install cuDNNv5: this [post](http://askubuntu.com/questions/767269/how-can-i-install-cudnn-on-ubuntu-16-04) might help
+* Suppress compiler error (again): simply a hack
+```
+vi /usr/local/cuda/include/host_config.h
+```
+comment the following line (L115):
+```
+//#error -- unsupported GNU version! gcc versions later than 5.3 are not supported!
+```
+* Modify Caffe: [#237](https://github.com/rbgirshick/py-faster-rcnn/issues/237)
+* Other issues: some of the required libraries like ```protobuf``` are compiled in older version of ```gcc``` when you use ```apt-get install``` to install them. This might cause errors later. To get around with this, download the corresponding repo from github and compile it from src.
 
 ## Prepare Data
 ### Download
@@ -72,11 +93,11 @@ To run the end-to-end training:
 
 ```
 cd $FRCN_ROOT
-./experiments/scripts/faster_rcnn_end2end.sh 0 VGG16 ilsvrc
+./experiments/scripts/faster_rcnn_end2end.sh 0 VGG16 ilsvrc --set RNG_SEED 42
 ```
 
 ## Use Caffe's snapshot
-After running ~28,000 iterations on AWS, the instance encountered a sudden mysterious shutdown. And the implemented snapshot method in Python has no way to restore the training state, meaning I have to run it again. To prevent similar things from happening again, I decided to use the Caffe's original snapshot.
+After running ~28,000 iterations on AWS, the problem stopped somehow (maybe I did something). And the implemented snapshot method in Python has no way to restore the training state, meaning I have to run it again. To prevent similar things from happening again, I decided to use the Caffe's original snapshot.
 
 The fix refers to the solution to [Issue#35](http://stackoverflow.com/questions/8773299/how-to-cut-an-entire-line-in-vim-and-paste-it). 
 
@@ -91,6 +112,8 @@ The fix refers to the solution to [Issue#35](http://stackoverflow.com/questions/
     * [Modification #6](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/models/ilsvrc/VGG16/faster_rcnn_end2end/solver.prototxt#L13)
 *  ```$FRCN_ROOT/experiments/scripts/faster_rcnn_end2end.sh```
     * [Modification #7](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/experiments/scripts/faster_rcnn_end2end.sh#L64) (comment the ```--weights``` and uncomment this line if you want to restore previous state)
+
+**Warning:** Don't use the ```.caffemodel``` ported directly by Caffe to test the results. Use the one output by python (the one stored in ./output/faster_rcnn_end2end/ilsvrc_2013_det_val_train)
 
 ## Results
 To be continued...

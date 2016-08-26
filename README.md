@@ -113,7 +113,7 @@ The fix refers to the solution to [Issue#35](http://stackoverflow.com/questions/
 *  ```$FRCN_ROOT/experiments/scripts/faster_rcnn_end2end.sh```
     * [Modification #7](https://github.com/Jaspereclipse/py-faster-rcnn/blob/master/experiments/scripts/faster_rcnn_end2end.sh#L64) (comment the ```--weights``` and uncomment this line if you want to restore previous state)
 
-**Warning:** Don't use the ```.caffemodel``` ported directly by Caffe to test the results. Use the one output by [snapshot()](https://github.com/rbgirshick/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L55) (the one stored in ./output/faster_rcnn_end2end/ilsvrc_2013_det_val_train)
+**Warning:** Don't use the ```.caffemodel``` ported directly by Caffe to test the results. Use the one output by [snapshot()](https://github.com/rbgirshick/py-faster-rcnn/blob/master/lib/fast_rcnn/train.py#L55) (the one stored in ```$FRCN_ROOT/output/faster_rcnn_end2end/ilsvrc_2013_det_val_train```)
 
 ## Results
 To be continued...

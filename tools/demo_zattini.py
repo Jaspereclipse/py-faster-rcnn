@@ -9,6 +9,7 @@
 
 """
 Demo script showing detections in sample images.
+
 See README.md for installation instructions before running.
 """
 
@@ -33,7 +34,7 @@ NETS = {'vgg16': ('VGG16',
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
 
-def vis_detections(image_name, im, class_name, dets, thresh=0.5):
+def vis_detections(im, class_name, dets, image_name, thresh=0.5):
     """Draw detected bounding boxes."""
     inds = np.where(dets[:, -1] >= thresh)[0]
     if len(inds) == 0:
@@ -64,16 +65,15 @@ def vis_detections(image_name, im, class_name, dets, thresh=0.5):
     plt.axis('off')
     plt.tight_layout()
     plt.draw()
-    # save the image
-    fig = plt.gcf()
-    fig.savefig("output_"+image_name)
-
+    
+    # Save
+    fig.savefig(os.path.join("output", "frame_analysis", image_name))
 
 def demo(net, image_name):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
-    im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name)
+    im_file = os.path.join(cfg.DATA_DIR, 'zattini_frames', image_name)
     im = cv2.imread(im_file)
 
     # Detect all object classes and regress object bounds
@@ -85,7 +85,7 @@ def demo(net, image_name):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = 0.7
+    CONF_THRESH = 0.8
     NMS_THRESH = 0.3
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
@@ -95,11 +95,11 @@ def demo(net, image_name):
                           cls_scores[:, np.newaxis])).astype(np.float32)
         keep = nms(dets, NMS_THRESH)
         dets = dets[keep, :]
-        vis_detections(image_name, im, cls, dets, thresh=CONF_THRESH)
+        vis_detections(im, cls, dets, image_name, thresh=CONF_THRESH)
 
 def parse_args():
     """Parse input arguments."""
-    parser = argparse.ArgumentParser(description='Faster R-CNN demo')
+    parser = argparse.ArgumentParser(description='Faster R-CNN demo for zattini')
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
                         default=0, type=int)
     parser.add_argument('--cpu', dest='cpu_mode',
@@ -119,7 +119,10 @@ if __name__ == '__main__':
 
     prototxt = os.path.join(cfg.ROOT_DIR, 'models/ilsvrc/VGG16/faster_rcnn_end2end/test.prototxt')
     caffemodel = './output/faster_rcnn_end2end/ilsvrc_2013_det_val_train/vgg16_faster_rcnn_iter_100000.caffemodel'
-
+    
+    data_path = "./data/zattini_frames"
+    
+    assert os.path.exists(data_path)
     assert os.path.isfile(caffemodel)
 
     if args.cpu_mode:
@@ -136,13 +139,12 @@ if __name__ == '__main__':
     im = 128 * np.ones((300, 500, 3), dtype=np.uint8)
     for i in xrange(2):
         _, _= im_detect(net, im)
-    # im_names = ['ILSVRC2012_val_00034342.JPEG', 'ILSVRC2012_val_00016115.JPEG', 
-    #             'ILSVRC2013_val_00002635.JPEG']
-    im_names = ['demo_01.jpg', 'demo_02.jpg', 'demo_03.jpg', '000456.jpg', '000542.jpg', '001150.jpg', '001763.jpg', '004545.jpg']
-#    im_names = ['demo_00.jpg']
+        
+    im_names = [name for name in os.listdir(data_path) if name.endswith(".jpg")]
+    
+#    im_names = ['demo_01.jpg', 'demo_02.jpg', 'demo_03.jpg', '000456.jpg', '000542.jpg', '001150.jpg', '001763.jpg', '004545.jpg']
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-        print 'Demo for data/demo/{}'.format(im_name)
+        print 'Demo for data/zattini_frames/{}'.format(im_name)
         demo(net, im_name)
 
-    plt.show()

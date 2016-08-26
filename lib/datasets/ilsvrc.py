@@ -199,33 +199,6 @@ class ilsvrc(imdb):
                 'flipped' : False,
                 'seg_areas' : seg_areas}
 
-    def _do_matlab_eval(self, output_dir='output'):
-        print '-----------------------------------------------------'
-        print 'Computing results with the official MATLAB eval code.'
-        print '-----------------------------------------------------'
-        path = os.path.join(cfg.ROOT_DIR, 'lib', 'datasets',
-                            'VOCdevkit-matlab-wrapper')
-        cmd = 'cd {} && '.format(path)
-        cmd += '{:s} -nodisplay -nodesktop '.format(cfg.MATLAB)
-        cmd += '-r "dbstop if error; '
-        cmd += 'voc_eval(\'{:s}\',\'{:s}\',\'{:s}\',\'{:s}\'); quit;"' \
-               .format(self._devkit_path, self._get_comp_id(),
-                       self._image_set, output_dir)
-        print('Running:\n{}'.format(cmd))
-        status = subprocess.call(cmd, shell=True)
-
-    def evaluate_detections(self, all_boxes, output_dir):
-        self._write_voc_results_file(all_boxes)
-        self._do_python_eval(output_dir)
-        if self.config['matlab_eval']:
-            self._do_matlab_eval(output_dir)
-        if self.config['cleanup']:
-            for cls in self._classes:
-                if cls == '__background__':
-                    continue
-                filename = self._get_voc_results_file_template().format(cls)
-                os.remove(filename)
-
     def _get_comp_id(self):
         comp_id = (self._comp_id + '_' + self._salt if self.config['use_salt']
             else self._comp_id)

@@ -74,10 +74,14 @@ if __name__ == '__main__':
         im_files = np.array([parser(c, im_suffix) for c in content])
         bbox_files = np.array([parser(c, bbox_suffix) for c in content])
     
-    num_samples = 10
-    choices = np.random.choice(len(im_files), num_samples)
-    im_samples = im_files[choices]
-    bbox_samples = bbox_files[choices]
+    # num_samples = 10
+    # choices = np.random.choice(len(im_files), num_samples)
+    # im_samples = im_files[choices]
+    # bbox_samples = bbox_files[choices]
+    num_samples = 1
+    im_samples = ["000005.jpg"]
+    bbox_samples = ["000005.xml"]
+
 
     for i in xrange(num_samples):
         # images
@@ -96,25 +100,3 @@ if __name__ == '__main__':
             boxes[ix, :] = [x1, y1, x2, y2]
         vis_bbox(im, boxes, im_samples[i])
     plt.show()
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            

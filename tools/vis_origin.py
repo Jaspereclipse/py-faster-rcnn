@@ -19,7 +19,7 @@ def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(description='Faster R-CNN trainset demo')
     parser.add_argument('--db', dest='imdb',
-                        help='Dataset to be visualized {pascal, ilsvrc}',
+                        help='Dataset to be visualized {pascal, ilsvrc, reimu}',
                         default=None, type=str)
     
     if len(sys.argv) == 1:
@@ -66,6 +66,13 @@ if __name__ == '__main__':
         ref = os.path.join(devkit_path, "data", "det_lists", "val.txt") # image names
         im_suffix = "JPEG"
         parser = (lambda c, suf: ".".join([c.split(" ")[0], suf]))
+    elif args.imdb == "reimu":
+        devkit_path = "./data/REIMUdevkit2016"
+        db = os.path.join(devkit_path, "images")
+        at = os.path.join(devkit_path, "annotations")
+        ref = os.path.join(devkit_path, "descriptions", "train.txt") # image names
+        im_suffix = "JPEG"
+        parser = (lambda c, suf: ".".join([c.split(" ")[0], suf]))
 
     assert os.path.isfile(ref)  
     
@@ -78,9 +85,9 @@ if __name__ == '__main__':
     # choices = np.random.choice(len(im_files), num_samples)
     # im_samples = im_files[choices]
     # bbox_samples = bbox_files[choices]
-    num_samples = 1
-    im_samples = ["000005.jpg"]
-    bbox_samples = ["000005.xml"]
+    num_samples = 4
+    im_samples = ["n03502331_11309.JPEG", "n04370048_26135.JPEG", "n03502331_4751.JPEG", "n04325704_3499.JPEG"]
+    bbox_samples = ["n03502331_11309.xml" ,"n04370048_26135.xml", "n03502331_4751.xml", "n04325704_3499.xml"]
 
 
     for i in xrange(num_samples):

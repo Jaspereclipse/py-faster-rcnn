@@ -44,6 +44,11 @@ case $DATASET in
     PT_DIR="ilsvrc"
     ITERS=100000
     ;;
+  reimu)
+    TRAIN_IMDB="reimu_2016_train"
+    PT_DIR="reimu"
+    ITERS=140000
+    ;;
   *)
     echo "No dataset given"
     exit
@@ -56,12 +61,13 @@ echo Logging output to "$LOG"
 
 time ./tools/train_net.py --gpu ${GPU_ID} \
   --solver models/${PT_DIR}/${NET}/faster_rcnn_end2end/solver.prototxt \
-  --weights data/imagenet_models/${NET}.v2.caffemodel \
+  --snapshot vgg16_faster_rcnn_iter_70000.solverstate \
   --imdb ${TRAIN_IMDB} \
   --iters ${ITERS} \
   --cfg experiments/cfgs/faster_rcnn_end2end.yml \
   ${EXTRA_ARGS}
-# --snapshot vgg16_faster_rcnn_iter_100.solverstate \
+  # --weights data/imagenet_models/${NET}.v2.caffemodel \
+
 
 # set +x
 # NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`

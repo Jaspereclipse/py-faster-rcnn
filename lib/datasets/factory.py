@@ -9,10 +9,17 @@
 
 __sets = {}
 
+from datasets.reimu import reimu
 from datasets.ilsvrc import ilsvrc
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
 import numpy as np
+
+# Set up zattini set
+for year in ['2016']:
+    for split in ['train']:
+        name = 'reimu_{}_{}'.format(year, split) # reimu_2016_train
+        __sets[name] = (lambda split=split, year=year: reimu(split, year))
 
 # Set up ilsvrc
 for year in ['2013']:
